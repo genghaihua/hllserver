@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. -->
+<project basedir="." default="jar" name="HllJava">
+    <property environment="env"/>
+    <property name="ECLIPSE_HOME" value="D:/eclipse/"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.7"/>
+    <property name="source" value="1.7"/>
+    <path id="HllJava.classpath">
+        <pathelement location="bin"/>
+        <pathelement location="lib/hll-1.6.0.jar"/>
+        <pathelement location="lib/fastutil-7.0.6.jar"/>
+        <pathelement location="lib/guava-18.0.jar"/>
+        <pathelement location="lib/com.sun.net.httpserver.jar"/>
+        <pathelement location="lib/log4j-1.2.17.jar"/>
+        <pathelement location="lib/slf4j-api-1.7.5.jar"/>
+        <pathelement location="lib/slf4j-log4j12.jar"/>
+    </path>
+    <target name="init">
+        <mkdir dir="bin"/>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="src">
+                <exclude name="**/*.launch"/>
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+    <target depends="clean" name="cleanall"/>
+    <target depends="build-subprojects,build-project" name="build"/>
+    <target name="build-subprojects"/>
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="HllJava.classpath"/>
+        </javac>
+    </target>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+    <target description="copy Eclipse compiler jars to ant lib directory" name="init-eclipse-compiler">
+        <copy todir="${ant.library.dir}">
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </copy>
+        <unzip dest="${ant.library.dir}">
+            <patternset includes="jdtCompilerAdapter.jar"/>
+            <fileset dir="${ECLIPSE_HOME}/plugins" includes="org.eclipse.jdt.core_*.jar"/>
+        </unzip>
+    </target>
+    <target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
+        <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+        <antcall target="build"/>
+    </target>
+    <target name="HLLTest">
+        <java classname="com.ghh.HLLTest" failonerror="true" fork="yes">
+            <classpath refid="HllJava.classpath"/>
+        </java>
+    </target>
+	<target name="jar" depends="build">
+			<pathconvert property="libs.project" pathsep=" ">
+				<mapper>
+					<chainedmapper>
+						<!-- remove absolute path -->
+						<flattenmapper />
+						<!-- add lib/ prefix -->
+						<globmapper from="*" to="*" />
+					</chainedmapper>
+				</mapper>
+				<path>
+					<!-- lib.home contains all jar files, in several subdirectories -->
+					<fileset dir="lib">
+						<include name="**/*.jar" />
+					</fileset>
+				</path>
+			</pathconvert>
+			<delete file="F:/HllJava.jar" />
+			<jar jarfile="F:/HllJava.jar">
+				<!-- define MANIFEST.MF -->
+				<manifest>
+					<!-- <attribute name="Main-Class" value="cn.clickwise.bigdata.services.radius.RadiusQuery" />-->
+					<!-- finally, use the magically generated libs path -->
+					<attribute name="Class-Path" value="${libs.project}" />
+				</manifest>
+				<zipgroupfileset dir="lib" includes="*.jar" />
+				<fileset dir="bin" includes="**/*.*" />
+			</jar>
+		</target>
+
+</project>
