@@ -78,11 +78,11 @@
 					</fileset>
 				</path>
 			</pathconvert>
-			<delete file="F:/HllJava.jar" />
-			<jar jarfile="F:/HllJava.jar">
+			<delete file="F:/hllserver.jar" />
+			<jar jarfile="F:/hllserver.jar">
 				<!-- define MANIFEST.MF -->
 				<manifest>
-					<!-- <attribute name="Main-Class" value="cn.clickwise.bigdata.services.radius.RadiusQuery" />-->
+					<attribute name="Main-Class" value="com.server.hll.HllServer" />
 					<!-- finally, use the magically generated libs path -->
 					<attribute name="Class-Path" value="${libs.project}" />
 				</manifest>

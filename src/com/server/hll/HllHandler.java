@@ -20,13 +20,15 @@ import com.sun.net.httpserver.HttpHandler;
 public class HllHandler implements HttpHandler {
 	private static int seed = 123456;
 	HashFunction hash = Hashing.murmur3_128(seed);
-	private static HashMap<String, HLL> cateHLLMap=new HashMap<String, HLL>();
+	private static HashMap<String, HLL> infoHLLMap=new HashMap<String, HLL>();
 	@Override
 	public void handle(HttpExchange httpExchange) throws IOException {
 		ProcessUrl processUrl = new ProcessUrl() {
 			@Override
 			public String getUrlResponse(Map<String, String> datas) {
 				String theme = datas.get("fun");
+				if(theme==null)
+					return "fun参数为设定";
 				if(theme.equals("add")){
 					return dealAdd(datas);
 				}
@@ -46,21 +48,22 @@ public class HllHandler implements HttpHandler {
 	}
 
 	protected String dealDel(Map<String, String> datas) {
-		String name=datas.get("cate");
+		String name=datas.get("key");
 		if(name==null||name.replaceAll(" ", "").length()<=0)
 			return "NO NAME!";
-		if(cateHLLMap.containsKey(name)){
-			cateHLLMap.get(name).clear();
+		if(infoHLLMap.containsKey(name)){
+			infoHLLMap.get(name).clear();
+			infoHLLMap.remove(name);
 		}
 		return "del "+name+" true!";	
 	}
 
 	protected String dealGet(Map<String, String> datas) {
-		String name=datas.get("cate");
+		String name=datas.get("key");
 		if(name==null||name.replaceAll(" ", "").length()<=0)
 			return "NO NAME!";
-		if(cateHLLMap.containsKey(name)){
-			return ""+cateHLLMap.get(name).cardinality();
+		if(infoHLLMap.containsKey(name)){
+			return ""+infoHLLMap.get(name).cardinality();
 		}
 		else{
 			return "0";
@@ -68,19 +71,19 @@ public class HllHandler implements HttpHandler {
 	}
 
 	protected String dealAdd(Map<String, String> datas) {
-		String name=datas.get("cate");
+		String name=datas.get("key");
 		if(name==null||name.replaceAll(" ", "").length()<=0)
 			return "NO NAME!";
-		String content=datas.get("content");
+		String content=datas.get("val");
 		if(content==null||content.replaceAll(" ", "").length()<=0)
 			return "NO content";
-		if(cateHLLMap.containsKey(name)){
-			cateHLLMap.get(name).addRaw(hash.newHasher().putBytes(content.getBytes()).hash().asLong());
+		if(infoHLLMap.containsKey(name)){
+			infoHLLMap.get(name).addRaw(hash.newHasher().putBytes(content.getBytes()).hash().asLong());
 		}
 		else{
 			HLL hll = new HLL(13, 5); 
 			hll.addRaw(hash.newHasher().putBytes(content.getBytes()).hash().asLong());
-			cateHLLMap.put(name, hll);
+			infoHLLMap.put(name, hll);
 		}
 		return "已添加类别:"+name+"  元素:"+content;
 	}
