@@ -10,12 +10,13 @@ public class HLLTest {
 
 	public static void main(String[] args) {
 		// test1();
-		final int seed = 123456;
+		final int seed = 1234567890;
 		HashFunction hash = Hashing.murmur3_128(seed);
 		// data on which to calculate distinct count
 		final Integer[] data = new Integer[] { 1, 1, 2, 3, 4, 5, 6, 6, 6, 7, 7,
 				7, 7, 8, 10 };
-		final HLL hll = new HLL(13, 5); // number of bucket and bits per bucket
+//		final HLL hll = new HLL(13, 5); // number of bucket and bits per bucket
+		final HLL hll = new HLL(30, 8);
 		for (int item : data) {
 			final long value = hash.newHasher().putInt(item).hash().asLong();
 			hll.addRaw(value);

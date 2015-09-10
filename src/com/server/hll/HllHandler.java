@@ -3,6 +3,7 @@ package com.server.hll;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.agkn.hll.HLL;
 
@@ -18,9 +19,14 @@ import com.sun.net.httpserver.HttpHandler;
  *
  */
 public class HllHandler implements HttpHandler {
-	private static int seed = 123456;
+	//private static int seed = 123456;
+	//Object object=new Object();
+	private  int seed = 1234567890;
 	HashFunction hash = Hashing.murmur3_128(seed);
-	private static HashMap<String, HLL> infoHLLMap=new HashMap<String, HLL>();
+//	HLL tmpHll=new HLL(30, 8); 
+//	long tmpLong=1;
+    private HashMap<String, HLL> infoHLLMap=new HashMap<String, HLL>();
+	//private ConcurrentHashMap<String, HLL> infoHLLMap=new ConcurrentHashMap<String, HLL>();
 	@Override
 	public void handle(HttpExchange httpExchange) throws IOException {
 		ProcessUrl processUrl = new ProcessUrl() {
@@ -55,7 +61,9 @@ public class HllHandler implements HttpHandler {
 			infoHLLMap.get(name).clear();
 			infoHLLMap.remove(name);
 		}
-		return "del "+name+" true!";	
+		System.err.println("del "+name+" true!");
+		return "OK";
+		//return "del "+name+" true!";	
 	}
 
 	protected String dealGet(Map<String, String> datas) {
@@ -63,6 +71,7 @@ public class HllHandler implements HttpHandler {
 		if(name==null||name.replaceAll(" ", "").length()<=0)
 			return "NO NAME!";
 		if(infoHLLMap.containsKey(name)){
+			System.err.println("key="+name+"|||"+infoHLLMap.get(name).cardinality());
 			return ""+infoHLLMap.get(name).cardinality();
 		}
 		else{
@@ -77,18 +86,50 @@ public class HllHandler implements HttpHandler {
 		String content=datas.get("val");
 		if(content==null||content.replaceAll(" ", "").length()<=0)
 			return "NO content";
-		if(infoHLLMap.containsKey(name)){
-			infoHLLMap.get(name).addRaw(hash.newHasher().putBytes(content.getBytes()).hash().asLong());
+//		synchronized (object) {
+//			if(infoHLLMap.containsKey(name)){
+//				infoHLLMap.get(name).addRaw(hash.newHasher().putBytes(content.getBytes()).hash().asLong());
+//			}
+//			else{
+//				//HLL hll = new HLL(13, 5); 
+//				HLL hll = new HLL(30, 8); 
+//				hll.addRaw(hash.newHasher().putBytes(content.getBytes()).hash().asLong());
+//				infoHLLMap.put(name, hll);
+//			}
+//		}
+		/*********************
+		boolean isExist=false;
+		synchronized (object){
+			isExist=infoHLLMap.containsKey(name);
+			if(isExist){
+				infoHLLMap.get(name).addRaw(hash.newHasher().putBytes(content.getBytes()).hash().asLong());
+				System.err.println("已添加类别:"+name+"  元素:"+content);
+				return "OK";
+			}
 		}
-		else{
-			HLL hll = new HLL(13, 5); 
-			hll.addRaw(hash.newHasher().putBytes(content.getBytes()).hash().asLong());
-			infoHLLMap.put(name, hll);
+		HLL hll = new HLL(30, 8); 
+		hll.addRaw(hash.newHasher().putBytes(content.getBytes()).hash().asLong());
+		infoHLLMap.put(name, hll);
+		System.err.println("已添加类别:"+name+"  元素:"+content);
+		return "OK";
+		***************************/
+		boolean isExist=false;
+		isExist=infoHLLMap.containsKey(name);
+		if(isExist){
+//			tmpHll=infoHLLMap.get(name);
+//			tmpLong=hash.newHasher().putBytes(content.getBytes()).hash().asLong();
+			synchronized (infoHLLMap){
+				infoHLLMap.get(name).addRaw(hash.newHasher().putBytes(content.getBytes()).hash().asLong());
+		    }
+			//System.err.println("已添加类别:"+name+"  元素:"+content);
+			return "OK";
 		}
-		return "已添加类别:"+name+"  元素:"+content;
+		
+		HLL hll = new HLL(30, 8); 
+		hll.addRaw(hash.newHasher().putBytes(content.getBytes()).hash().asLong());
+		infoHLLMap.put(name, hll);
+		//System.err.println("已添加类别:"+name+"  元素:"+content);
+		return "OK";
+		//return "已添加类别:"+name+"  元素:"+content;
 	}
-
-	
-
-	
 }
